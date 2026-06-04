@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CompyMirror — 개발 문서</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap"/>
+<style>
+  :root{
+    --ink:#1c1f27;--ink-2:#3c414e;--ink-3:#646a78;--ink-4:#9aa0ad;
+    --bg:#f4f5f8;--surface:#ffffff;--surface-2:#f8f9fb;--border:#e4e7ee;
+    --accent:#2a7a4f;--accent-b:#1f6fa0;--accent-p:#7c6fcc;
+    --code-bg:#1c1f27;--code-ink:#e4e7ee;
+    --font:'Pretendard Variable','Pretendard',system-ui,sans-serif;
+    --font-tech:'Chakra Petch',monospace;
+    --font-code:'JetBrains Mono',monospace;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  body{max-width:800px;margin:0 auto;padding:56px 28px 100px}
+
+  /* header */
+  .doc-header{margin-bottom:52px}
+  .doc-label{font-family:var(--font-tech);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:12px}
+  .doc-title{font-size:38px;font-weight:800;letter-spacing:-.025em;line-height:1.18;color:var(--ink)}
+  .doc-title span{background:linear-gradient(90deg,var(--accent),var(--accent-b));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .doc-meta{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap}
+  .meta-item{font-size:12.5px;color:var(--ink-3);display:flex;align-items:center;gap:5px}
+  .meta-item b{color:var(--ink-2);font-weight:600}
+  .doc-desc{margin-top:20px;font-size:15.5px;line-height:1.7;color:var(--ink-2);max-width:620px}
+
+  /* section */
+  .section{margin-top:52px}
+  .section + .section{border-top:1px solid var(--border);padding-top:48px}
+  .section-tag{font-family:var(--font-tech);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:8px}
+  .section-title{font-size:22px;font-weight:800;letter-spacing:-.018em;color:var(--ink);margin-bottom:18px}
+
+  /* version timeline */
+  .timeline{display:flex;flex-direction:column;gap:0}
+  .tl-item{display:grid;grid-template-columns:88px 1fr;gap:0}
+  .tl-left{display:flex;flex-direction:column;align-items:center;padding-top:4px}
+  .tl-ver{font-family:var(--font-tech);font-size:13px;font-weight:700;color:var(--ink);background:var(--surface);border:2px solid var(--border);border-radius:8px;padding:4px 10px;white-space:nowrap;z-index:1}
+  .tl-line{width:2px;flex:1;background:var(--border);margin:6px 0}
+  .tl-item:last-child .tl-line{display:none}
+  .tl-right{padding:0 0 32px 20px}
+  .tl-title{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:8px}
+  .tl-list{list-style:none;display:flex;flex-direction:column;gap:6px}
+  .tl-list li{font-size:13.5px;color:var(--ink-2);line-height:1.55;padding-left:14px;position:relative}
+  .tl-list li::before{content:"→";position:absolute;left:0;color:var(--ink-4);font-size:12px}
+
+  /* file tree */
+  .file-tree{background:var(--code-bg);border-radius:var(--radius);padding:22px 24px;font-family:var(--font-code);font-size:13px;line-height:1.9;color:var(--code-ink);overflow-x:auto}
+  .file-tree .dir{color:#8fd9ff}
+  .file-tree .file{color:#e4e7ee}
+  .file-tree .new{color:#9affd0}
+  .file-tree .note{color:#9aa0ad;font-size:12px}
+  .file-tree .indent{padding-left:20px;display:block}
+
+  /* code block */
+  .code-block{background:var(--code-bg);border-radius:var(--radius);padding:20px 22px;font-family:var(--font-code);font-size:12.5px;line-height:1.75;color:var(--code-ink);overflow-x:auto;margin-top:12px}
+  .code-block .cm{color:#9aa0ad}
+  .code-block .kw{color:#ff9ad5}
+  .code-block .fn{color:#8fd9ff}
+  .code-block .str{color:#9affd0}
+  .code-block .num{color:#fff39a}
+
+  /* tech table */
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+  th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);font-weight:600;padding:10px 14px;border-bottom:2px solid var(--border)}
+  td{padding:13px 14px;border-bottom:1px solid var(--border);color:var(--ink-2);line-height:1.55;vertical-align:top}
+  td:first-child{font-weight:600;color:var(--ink);white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+
+  /* callout */
+  .callout{border-radius:var(--radius);padding:17px 20px;font-size:13.5px;line-height:1.65;margin-top:14px}
+  .callout.green{background:#e8f7ef;border:1px solid #b8e6cc;color:#1f5c3a}
+  .callout.blue{background:#e5f2fb;border:1px solid #b0d9f2;color:#1a4f72}
+  .callout.yellow{background:#fdf8e4;border:1px solid #ecdfa0;color:#5c4a00}
+  .callout b{font-weight:700}
+
+  /* perf cards */
+  .perf-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+  .perf-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+  .perf-card h4{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px}
+  .perf-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+  .perf-row:last-child{border-bottom:none}
+  .perf-label{color:var(--ink-3)}
+  .perf-val{font-family:var(--font-code);font-weight:500;color:var(--ink);font-size:12px}
+  .perf-val.green{color:var(--accent)}
+  .perf-val.red{color:#c0392b}
+
+  /* pill */
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600}
+  .pill.green{background:#e2f5eb;color:#2a7a4f}
+  .pill.blue{background:#ddf0ff;color:#1f6fa0}
+  .pill.purple{background:#ede9ff;color:#7c6fcc}
+
+  /* deploy steps */
+  .deploy-steps{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+  .deploy-step{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:15px 17px;display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:start}
+  .step-n{font-family:var(--font-tech);font-size:12px;font-weight:700;color:var(--accent-b);width:22px;height:22px;background:#ddf0ff;border-radius:6px;display:flex;align-items:center;justify-content:center}
+  .step-title{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px}
+  .step-body{font-size:13px;color:var(--ink-3);line-height:1.6}
+  code{font-family:var(--font-code);font-size:12.5px;background:var(--surface-2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--ink-2)}
+
+  @media(max-width:560px){
+    .perf-grid{grid-template-columns:1fr}
+    .doc-title{font-size:28px}
+    .tl-item{grid-template-columns:72px 1fr}
+  }
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <div class="doc-label">Technical Development · CompyMirror</div>
+  <h1 class="doc-title">개발 문서<br><span>CompyMirror v7 → v10</span></h1>
+  <div class="doc-meta">
+    <span class="meta-item"><b>작성일</b> 2026. 06. 05</span>
+    <span class="meta-item"><b>최종 버전</b> v10</span>
+    <span class="meta-item"><b>분류</b> 기술 구현 / 아키텍처 / 배포</span>
+  </div>
+  <p class="doc-desc">CompyMirror의 마이크로 인터랙션 도입(v8), 피드백·후원 기능 추가(v9), UX 수정(v10)의 기술 구현 내용을 정리한 개발 문서입니다.</p>
+</div>
+
+<!-- 1. 기술 스택 -->
+<section class="section">
+  <div class="section-tag">01</div>
+  <h2 class="section-title">기술 스택</h2>
+  <table>
+    <thead><tr><th>영역</th><th>기술</th><th>비고</th></tr></thead>
+    <tbody>
+      <tr><td>언어</td><td>Vanilla HTML / CSS / JavaScript</td><td>프레임워크 없음. 단일 파일로 배포 가능</td></tr>
+      <tr><td>폰트</td><td>Pretendard Variable, Chakra Petch</td><td>Google Fonts / CDN 로드</td></tr>
+      <tr><td>카메라</td><td>getUserMedia API</td><td>HTTPS 환경 필수</td></tr>
+      <tr><td>이미지 처리</td><td>Canvas 2D API + UpscalerJS (fallback)</td><td>픽셀 단위 필터 처리, AI 업스케일 시도 후 로컬 보정으로 폴백</td></tr>
+      <tr><td>피드백 폼</td><td>Tally.so iframe 임베드</td><td>https://tally.so/r/Gxb6Mz</td></tr>
+      <tr><td>후원</td><td>카카오페이 QR (base64 내장)</td><td>standalone 파일에 이미지 인라인</td></tr>
+      <tr><td>배포</td><td>Netlify / GitHub Pages</td><td>standalone HTML 단일 파일</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 2. 파일 구조 -->
+<section class="section">
+  <div class="section-tag">02</div>
+  <h2 class="section-title">파일 구조</h2>
+  <div class="file-tree">
+<span class="dir">CompyMirror/</span>
+<span class="indent"><span class="file">chrome.css</span>          <span class="note">— Liquid Chrome 디자인 시스템 (토큰·컴포넌트)</span></span>
+<span class="indent"><span class="new">micro.css</span>           <span class="note">— 마이크로 인터랙션 스타일 (v8 추가)</span></span>
+<span class="indent"><span class="new">micro.js</span>            <span class="note">— 마이크로 인터랙션 동작 (v8 추가)</span></span>
+<span class="indent"><span class="file">CompyMirror_v7.html</span> <span class="note">— 베이스 버전</span></span>
+<span class="indent"><span class="file">CompyMirror_v8.html</span> <span class="note">— + 마이크로 인터랙션</span></span>
+<span class="indent"><span class="file">CompyMirror_v9.html</span> <span class="note">— + 피드백·후원 모달</span></span>
+<span class="indent"><span class="file">CompyMirror_v10.html</span><span class="note">— + 투어 수정·버튼 항상 표시 (최종)</span></span>
+<span class="indent"><span class="dir">download/</span></span>
+<span class="indent"><span class="indent"><span class="new">CompyMirror_v10_standalone.html</span> <span class="note">— 배포용 단일 파일 (3MB, 모든 에셋 내장)</span></span></span>
+  </div>
+
+  <div class="callout green" style="margin-top:16px">
+    <b>standalone 번들 원칙:</b> chrome.css · micro.css · micro.js · 카카오페이 QR 이미지(base64)가 모두 HTML 한 파일에 인라인됩니다. 외부 요청 없이 오프라인에서도 동작 (단, Tally 폼·Google Fonts는 네트워크 필요).
+  </div>
+</section>
+
+<!-- 3. 버전별 구현 -->
+<section class="section">
+  <div class="section-tag">03</div>
+  <h2 class="section-title">버전별 구현 내용</h2>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-ver">v8</div><div class="tl-line"></div></div>
+      <div class="tl-right">
+        <div class="tl-title">마이크로 인터랙션 레이어</div>
+        <ul class="tl-list">
+          <li><b>micro.css</b> — 뷰파인더 CSS perspective tilt, 버튼 specular sheen (::before radial-gradient), 리플 키프레임, 슬라이더 버블, 카운트다운 spring-pop, 프리셋 chip-pick, 셔터 recoil, 브랜드 hover tilt</li>
+          <li><b>micro.js</b> — pointermove로 버튼 --mx/--my 업데이트, 마그네틱 버튼 --tx/--ty, pointerdown 리플 spawn, 슬라이더 버블 포지셔닝, MutationObserver로 카운트다운 팝 트리거, window.snap·preset 함수 래핑</li>
+          <li>기존 글로벌 <code>--mxr</code> / <code>--myr</code> 재활용 → 추가 rAF 루프 없음</li>
+          <li><code>prefers-reduced-motion</code> 완전 대응 (spatial 효과만 제거, state 피드백 유지)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-ver">v9</div><div class="tl-line"></div></div>
+      <div class="tl-right">
+        <div class="tl-title">피드백 · 후원 · 푸터</div>
+        <ul class="tl-list">
+          <li><b>푸터 바</b> — <code>.foot-bar</code> glass 컴포넌트, 피드백(ghost) + 후원하기(holo foil) 버튼</li>
+          <li><b>피드백 모달</b> — <code>#feedback-modal</code>, Tally iframe (<code>hideTitle=1&transparentBackground=1</code>), backdrop-click 닫기</li>
+          <li><b>후원 모달</b> — <code>#donate-modal</code>, 카카오페이 QR을 base64로 인라인 (<code>run_script</code>로 이미지 읽어 HTML에 직접 삽입), KakaoPay 배지</li>
+          <li>ESC 키로 두 모달 동시 닫기</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-ver">v10</div><div class="tl-line"></div></div>
+      <div class="tl-right">
+        <div class="tl-title">UX 수정</div>
+        <ul class="tl-list">
+          <li><b>투어 자동 실행 제거</b> — <code>localStorage</code> 체크 후 setTimeout(startTour) 코드 삭제. <code>openGuide()</code>는 ? 버튼에서만 호출</li>
+          <li><b>버튼 항상 표시</b> — 반전·비율·인생네컷·스냅샷에서 <code>style="display:none"</code> 제거. 초기 로드 시 <code>disabled=true</code>, 카메라 시작 시 <code>disabled=false</code>, 카메라 종료 시 다시 <code>disabled=true</code></li>
+          <li><code>startCam()</code> / <code>stopCam()</code> 에서 display 토글 대신 disabled 토글로 변경</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. 핵심 구현 패턴 -->
+<section class="section">
+  <div class="section-tag">04</div>
+  <h2 class="section-title">핵심 구현 패턴</h2>
+
+  <h3 style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px">① 버튼 Specular Sheen (CSS 변수 + ::before)</h3>
+  <div class="code-block"><span class="cm">/* CSS */</span>
+<span class="fn">.btn</span>::before {
+  background: <span class="fn">radial-gradient</span>(<span class="num">90px</span> circle at <span class="fn">var</span>(--mx, <span class="num">50%</span>) <span class="fn">var</span>(--my, <span class="num">50%</span>),
+    <span class="fn">rgba</span>(<span class="num">255,255,255,.55</span>), <span class="fn">rgba</span>(<span class="num">255,255,255,0</span>) <span class="num">62%</span>);
+  mix-blend-mode: soft-light; <span class="cm">/* 텍스트 가독성 유지 */</span>
+}
+
+<span class="cm">/* JS — pointermove 핸들러 */</span>
+<span class="kw">const</span> r = el.<span class="fn">getBoundingClientRect</span>();
+el.style.<span class="fn">setProperty</span>(<span class="str">'--mx'</span>, ((e.clientX - r.left) / r.width * <span class="num">100</span>).<span class="fn">toFixed</span>(<span class="num">1</span>) + <span class="str">'%'</span>);
+el.style.<span class="fn">setProperty</span>(<span class="str">'--my'</span>, ((e.clientY - r.top) / r.height * <span class="num">100</span>).<span class="fn">toFixed</span>(<span class="num">1</span>) + <span class="str">'%'</span>);</div>
+
+  <h3 style="font-size:15px;font-weight:700;color:var(--ink);margin:20px 0 4px">② 카운트다운 Spring-pop (MutationObserver)</h3>
+  <div class="code-block"><span class="cm">/* 텍스트 바뀔 때마다 animation 재실행 */</span>
+<span class="kw">new</span> <span class="fn">MutationObserver</span>(() => {
+  cd.<span class="fn">classList.remove</span>(<span class="str">'pop'</span>);
+  <span class="kw">void</span> cd.offsetWidth; <span class="cm">/* reflow 강제 — animation 재시작 트리거 */</span>
+  cd.<span class="fn">classList.add</span>(<span class="str">'pop'</span>);
+}).<span class="fn">observe</span>(cd, { childList: <span class="kw">true</span>, characterData: <span class="kw">true</span>, subtree: <span class="kw">true</span> });</div>
+
+  <h3 style="font-size:15px;font-weight:700;color:var(--ink);margin:20px 0 4px">③ 기존 함수 래핑 (셔터 리코일)</h3>
+  <div class="code-block"><span class="cm">/* micro.js는 메인 script 이후 로드 → 전역 함수를 래핑 가능 */</span>
+[<span class="str">'snap'</span>, <span class="str">'fireFlash'</span>].<span class="fn">forEach</span>(fn => {
+  <span class="kw">const</span> orig = window[fn];
+  window[fn] = <span class="kw">function</span>() { <span class="fn">kick</span>(); <span class="kw">return</span> orig.<span class="fn">apply</span>(<span class="kw">this</span>, arguments); };
+});</div>
+
+  <h3 style="font-size:15px;font-weight:700;color:var(--ink);margin:20px 0 4px">④ 카카오페이 QR base64 인라인</h3>
+  <div class="code-block"><span class="cm">/* run_script로 이미지 읽어 HTML에 직접 삽입 */</span>
+<span class="kw">const</span> qrBlob = <span class="kw">await</span> <span class="fn">readFileBinary</span>(<span class="str">'uploads/kakao_qr.png'</span>);
+<span class="kw">const</span> b64 = <span class="fn">btoa</span>(String.<span class="fn">fromCharCode</span>(...<span class="kw">new</span> <span class="fn">Uint8Array</span>(<span class="kw">await</span> qrBlob.<span class="fn">arrayBuffer</span>())));
+<span class="kw">const</span> qrDataUrl = <span class="str">'data:image/png;base64,'</span> + b64;
+<span class="cm">/* → img src에 직접 삽입, standalone에서도 외부 요청 없음 */</span></div>
+</section>
+
+<!-- 5. 성능 분석 -->
+<section class="section">
+  <div class="section-tag">05</div>
+  <h2 class="section-title">v7 vs v8 성능 분석</h2>
+  <div class="perf-grid">
+    <div class="perf-card">
+      <h4>실제 병목 (v7 · v8 동일)</h4>
+      <div class="perf-row"><span class="perf-label">캔버스 픽셀 처리</span><span class="perf-val red">60fps rAF</span></div>
+      <div class="perf-row"><span class="perf-label">getImageData / putImageData</span><span class="perf-val red">매 프레임</span></div>
+      <div class="perf-row"><span class="perf-label">박스 블러 (JS)</span><span class="perf-val red">O(w×h)</span></div>
+    </div>
+    <div class="perf-card">
+      <h4>v8 추가 비용</h4>
+      <div class="perf-row"><span class="perf-label">추가 rAF 루프</span><span class="perf-val green">없음</span></div>
+      <div class="perf-row"><span class="perf-label">뷰파인더 tilt</span><span class="perf-val green">CSS transform (GPU)</span></div>
+      <div class="perf-row"><span class="perf-label">버튼 sheen</span><span class="perf-val green">hover 시 CSS var 2개</span></div>
+      <div class="perf-row"><span class="perf-label">리플</span><span class="perf-val green">클릭 시 1회 DOM</span></div>
+    </div>
+  </div>
+  <div class="callout blue" style="margin-top:14px">
+    <b>결론:</b> v7과 v8의 체감 성능 차이 없음. 모든 마이크로 인터랙션은 GPU 합성 레이어(transform, opacity)만 사용하며 실제 병목(캔버스 픽셀 루프)을 건드리지 않습니다.
+  </div>
+</section>
+
+<!-- 6. 배포 가이드 -->
+<section class="section">
+  <div class="section-tag">06</div>
+  <h2 class="section-title">배포 가이드</h2>
+
+  <div class="callout yellow" style="margin-bottom:18px">
+    <b>⚠️ 필수:</b> <code>getUserMedia</code> 카메라 API는 <b>HTTPS</b> 또는 <b>localhost</b>에서만 동작합니다. <code>file://</code> 직접 실행 시 카메라가 차단됩니다.
+  </div>
+
+  <h3 style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:10px">Netlify Drop (권장 · 30초)</h3>
+  <div class="deploy-steps">
+    <div class="deploy-step">
+      <div class="step-n">1</div>
+      <div><div class="step-title">netlify.com/drop 접속</div><div class="step-body">별도 회원가입 없이 즉시 배포 가능.</div></div>
+    </div>
+    <div class="deploy-step">
+      <div class="step-n">2</div>
+      <div><div class="step-title">파일 드래그 앤 드롭</div><div class="step-body"><code>CompyMirror_v10_standalone.html</code> 파일을 드래그.</div></div>
+    </div>
+    <div class="deploy-step">
+      <div class="step-n">3</div>
+      <div><div class="step-title">URL 생성</div><div class="step-body"><code>https://xxxxx.netlify.app</code> 형태의 HTTPS URL이 즉시 생성됩니다.</div></div>
+    </div>
+  </div>
+
+  <h3 style="font-size:15px;font-weight:700;color:var(--ink);margin:24px 0 10px">GitHub Pages</h3>
+  <div class="deploy-steps">
+    <div class="deploy-step">
+      <div class="step-n">1</div>
+      <div><div class="step-title">레포지토리 생성</div><div class="step-body">github.com → New repository (public)</div></div>
+    </div>
+    <div class="deploy-step">
+      <div class="step-n">2</div>
+      <div><div class="step-title">파일 업로드</div><div class="step-body">Add file → Upload files → standalone HTML 업로드 후 Commit</div></div>
+    </div>
+    <div class="deploy-step">
+      <div class="step-n">3</div>
+      <div><div class="step-title">Pages 활성화</div><div class="step-body">Settings → Pages → Branch: main → Save. <code>https://username.github.io/repo/</code> 로 공개.</div></div>
+    </div>
+  </div>
+
+  <h3 style="font-size:15px;font-weight:700;color:var(--ink);margin:24px 0 10px">로컬 테스트</h3>
+  <div class="code-block"><span class="cm"># Python 3</span>
+python -m http.server 8080
+<span class="cm"># 브라우저에서 http://localhost:8080/CompyMirror_v10_standalone.html 접속</span></div>
+</section>
+
+<!-- 7. 알려진 제한 -->
+<section class="section">
+  <div class="section-tag">07</div>
+  <h2 class="section-title">알려진 제한 사항</h2>
+  <table>
+    <thead><tr><th>항목</th><th>내용</th><th>비고</th></tr></thead>
+    <tbody>
+      <tr><td>Tally 폼</td><td>로컬(file://) 및 sandbox iframe에서 빈 화면</td><td>배포 환경에서 정상 동작</td></tr>
+      <tr><td>AI 업스케일</td><td>UpscalerJS 로드 실패 시 로컬 보정으로 자동 폴백</td><td>28초 타임아웃 후 폴백</td></tr>
+      <tr><td>카메라 권한</td><td>HTTPS 또는 localhost 필수</td><td>file:// 실행 불가</td></tr>
+      <tr><td>grain 에셋</td><td>standalone 번들 시 <code>%23n</code> 경고 발생</td><td>SVG 내부 filter 참조, 실제 동작에 영향 없음</td></tr>
+      <tr><td>Web Share API</td><td>지원하지 않는 환경에서 클립보드 복사 → 다운로드로 폴백</td><td>A→B→C 3단계 폴백 처리됨</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</body>
+</html>

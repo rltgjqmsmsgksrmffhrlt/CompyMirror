@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CompyMirror — 기획 문서</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&display=swap"/>
+<style>
+  :root{
+    --ink:#1c1f27;--ink-2:#3c414e;--ink-3:#646a78;--ink-4:#9aa0ad;
+    --bg:#f4f5f8;--surface:#ffffff;--border:#e4e7ee;
+    --accent:#7c6fcc;--accent-2:#4a9fd4;
+    --font:'Pretendard Variable','Pretendard',system-ui,sans-serif;
+    --font-tech:'Chakra Petch',monospace;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  body{max-width:780px;margin:0 auto;padding:56px 28px 100px}
+
+  /* header */
+  .doc-header{margin-bottom:52px}
+  .doc-label{font-family:var(--font-tech);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:12px}
+  .doc-title{font-size:38px;font-weight:800;letter-spacing:-.025em;line-height:1.18;color:var(--ink)}
+  .doc-title span{background:linear-gradient(90deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .doc-meta{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap}
+  .meta-item{font-size:12.5px;color:var(--ink-3);display:flex;align-items:center;gap:5px}
+  .meta-item b{color:var(--ink-2);font-weight:600}
+  .doc-desc{margin-top:20px;font-size:15.5px;line-height:1.7;color:var(--ink-2);max-width:600px}
+
+  /* sections */
+  .section{margin-top:52px}
+  .section-tag{font-family:var(--font-tech);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:8px}
+  .section-title{font-size:22px;font-weight:800;letter-spacing:-.018em;color:var(--ink);margin-bottom:18px}
+  .section + .section{border-top:1px solid var(--border);padding-top:48px}
+
+  /* cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:6px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 18px}
+  .card-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#ede9ff,#d6f0ff);display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:17px}
+  .card-title{font-size:14px;font-weight:700;letter-spacing:-.01em;color:var(--ink);margin-bottom:6px}
+  .card-body{font-size:13px;line-height:1.6;color:var(--ink-3)}
+
+  /* decision log */
+  .decisions{display:flex;flex-direction:column;gap:0}
+  .decision{display:grid;grid-template-columns:140px 1fr;gap:20px;padding:20px 0;border-bottom:1px solid var(--border)}
+  .decision:first-child{border-top:1px solid var(--border)}
+  .dec-q{font-size:12.5px;font-weight:700;color:var(--ink-3);line-height:1.5}
+  .dec-a{font-size:14px;line-height:1.65;color:var(--ink-2)}
+  .dec-a b{color:var(--ink);font-weight:700}
+  .dec-a .why{display:block;font-size:12.5px;color:var(--ink-4);margin-top:5px}
+
+  /* ux table */
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+  th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);font-weight:600;padding:10px 14px;border-bottom:2px solid var(--border)}
+  td{padding:13px 14px;border-bottom:1px solid var(--border);color:var(--ink-2);line-height:1.55;vertical-align:top}
+  td:first-child{font-weight:600;color:var(--ink);white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+
+  /* micro list */
+  .micro-list{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+  .micro-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:15px 17px;display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:start}
+  .micro-num{font-family:var(--font-tech);font-size:11px;font-weight:700;color:var(--accent);padding-top:2px}
+  .micro-title{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px}
+  .micro-desc{font-size:13px;color:var(--ink-3);line-height:1.6}
+
+  /* tag pill */
+  .pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;background:#ede9ff;color:var(--accent);margin-left:6px;vertical-align:middle}
+  .pill.green{background:#e2f5eb;color:#2a7a4f}
+  .pill.blue{background:#ddf0ff;color:#1f6fa0}
+
+  /* callout */
+  .callout{background:linear-gradient(135deg,#f5f3ff,#edf8ff);border:1px solid #ddd9f8;border-radius:var(--radius);padding:18px 20px;font-size:14px;line-height:1.65;color:var(--ink-2);margin-top:16px}
+  .callout b{color:var(--ink)}
+
+  @media(max-width:560px){
+    .decision{grid-template-columns:1fr}
+    .doc-title{font-size:28px}
+  }
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <div class="doc-label">Product Planning · CompyMirror</div>
+  <h1 class="doc-title">기획 문서<br><span>CompyMirror v7 → v10</span></h1>
+  <div class="doc-meta">
+    <span class="meta-item"><b>작성일</b> 2026. 06. 05</span>
+    <span class="meta-item"><b>버전</b> v10 기준</span>
+    <span class="meta-item"><b>분류</b> 기획 / UX / 디자인 결정</span>
+  </div>
+  <p class="doc-desc">CompyMirror 개발 과정에서 이루어진 기능 확장, UX 결정, 디자인 방향을 정리한 기획 문서입니다. 마이크로 인터랙션 도입부터 피드백·후원 기능까지의 의사결정 과정을 담습니다.</p>
+</div>
+
+<!-- 1. 프로젝트 개요 -->
+<section class="section">
+  <div class="section-tag">01</div>
+  <h2 class="section-title">프로젝트 개요</h2>
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">🪞</div>
+      <div class="card-title">무엇인가</div>
+      <div class="card-body">웹캠을 거울처럼 사용하는 브라우저 앱. 필터·보정·인생네컷·스냅샷을 로컬에서 처리.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔒</div>
+      <div class="card-title">핵심 원칙</div>
+      <div class="card-body">모든 영상·AI 처리가 기기 내부에서만 동작. 서버 업로드 없음. 개인정보 수집 없음.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">✦</div>
+      <div class="card-title">디자인 언어</div>
+      <div class="card-body">Liquid Chrome — 홀로그래픽 포일, 글래스모피즘, 포인터 반응형 광원 효과.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📦</div>
+      <div class="card-title">배포 형태</div>
+      <div class="card-body">standalone HTML 단일 파일. 외부 의존성 없이 브라우저에서 즉시 실행.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. 개발 범위 (v7 → v10) -->
+<section class="section">
+  <div class="section-tag">02</div>
+  <h2 class="section-title">개발 범위 (v7 → v10)</h2>
+  <table>
+    <thead>
+      <tr><th>버전</th><th>추가된 기능</th><th>분류</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>v7</td><td>기존 완성본 — 카메라, 필터, 프리셋, 인생네컷, 스냅샷, 코치마크 투어</td><td><span class="pill blue">Base</span></td></tr>
+      <tr><td>v8</td><td>마이크로 인터랙션 레이어 (micro.css + micro.js)</td><td><span class="pill">UX</span></td></tr>
+      <tr><td>v9</td><td>피드백 모달 (Tally), 후원 모달 (카카오페이 QR), 푸터 바</td><td><span class="pill green">기능</span></td></tr>
+      <tr><td>v10</td><td>투어 자동 실행 제거 (? 버튼으로만), 버튼 항상 표시 + disabled 상태</td><td><span class="pill">UX</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 3. 마이크로 인터랙션 기획 -->
+<section class="section">
+  <div class="section-tag">03</div>
+  <h2 class="section-title">마이크로 인터랙션 도입 배경</h2>
+
+  <div class="callout">
+    <b>문제 인식:</b> v7에서 배경(홀로·글레어)은 마우스에 반응하지만, 컨트롤 UI 자체는 정적이었다. 로그인 화면처럼 사용자의 작은 행동에 즉각 반응하는 세밀한 피드백이 없었다.
+  </div>
+
+  <div class="micro-list" style="margin-top:20px">
+    <div class="micro-item">
+      <div class="micro-num">01</div>
+      <div>
+        <div class="micro-title">뷰파인더 패럴랙스 틸트</div>
+        <div class="micro-desc">커서 위치에 따라 거울 패널이 3D로 기울어짐. 기존 --mxr/--myr CSS 변수를 재활용해 추가 JS 없이 GPU 합성만으로 구현. 실제 반사 패널 같은 물리감 부여.</div>
+      </div>
+    </div>
+    <div class="micro-item">
+      <div class="micro-num">02</div>
+      <div>
+        <div class="micro-title">마그네틱 버튼</div>
+        <div class="micro-desc">카메라 시작·스냅샷·인생네컷 등 주요 버튼이 커서에 끌려오는 효과. 중요 액션에 시선을 유도하고 클릭 전 물리적 피드백 제공.</div>
+      </div>
+    </div>
+    <div class="micro-item">
+      <div class="micro-num">03</div>
+      <div>
+        <div class="micro-title">리퀴드 리플</div>
+        <div class="micro-desc">모든 버튼·칩·타이머 클릭 시 클릭 지점에서 물결이 퍼짐. "Liquid Chrome" 디자인 언어에서 클릭=액체 반응으로 연결.</div>
+      </div>
+    </div>
+    <div class="micro-item">
+      <div class="micro-num">04</div>
+      <div>
+        <div class="micro-title">슬라이더 값 버블</div>
+        <div class="micro-desc">드래그 시 홀로 포일 버블이 썸 위로 팝업. 현재 값을 시각적으로 확인하면서 조절 가능. 썸에 발광 효과 추가.</div>
+      </div>
+    </div>
+    <div class="micro-item">
+      <div class="micro-num">05</div>
+      <div>
+        <div class="micro-title">카운트다운 스프링 팝 + 셔터 리코일</div>
+        <div class="micro-desc">카운트다운 숫자가 탄성 있게 팝인. 촬영 순간 뷰파인더 전체가 미세 수축 후 복귀 — 실제 셔터 누르는 느낌 강화.</div>
+      </div>
+    </div>
+    <div class="micro-item">
+      <div class="micro-num">06</div>
+      <div>
+        <div class="micro-title">성능 고려</div>
+        <div class="micro-desc">추가 rAF 루프 없음. 모든 애니메이션은 GPU 합성 레이어(transform, opacity)만 사용. 실제 병목(캔버스 픽셀 처리)을 건드리지 않아 v7과 체감 속도 동일.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. 피드백·후원 기능 기획 -->
+<section class="section">
+  <div class="section-tag">04</div>
+  <h2 class="section-title">피드백 &amp; 후원 기능 기획</h2>
+  <div class="decisions">
+    <div class="decision">
+      <div class="dec-q">피드백 수집 방식</div>
+      <div class="dec-a">
+        <b>Tally.so 임베드 (iframe)</b> — 페이지 이탈 없이 모달 내에서 폼 제출.
+        <span class="why">→ 백엔드 불필요. DB·이메일 알림 포함. 무료. 한 줄 URL만 교체하면 폼 내용 변경 가능.</span>
+      </div>
+    </div>
+    <div class="decision">
+      <div class="dec-q">후원 결제 방식</div>
+      <div class="dec-a">
+        <b>카카오페이 QR 모달</b> — 토스 링크 차단 후 대안 채택.
+        <span class="why">→ 한국 유저에게 가장 익숙한 플로우. 외부 서비스 가입 불필요. QR 이미지 하나로 완결.</span>
+      </div>
+    </div>
+    <div class="decision">
+      <div class="dec-q">UI 배치</div>
+      <div class="dec-a">
+        <b>글래스 푸터 바</b> — 하단에 고정 배치, 피드백(ghost)·후원하기(holo foil) 버튼.
+        <span class="why">→ 메인 기능 방해 없이 존재감. 홀로 포일 버튼으로 후원 유도.</span>
+      </div>
+    </div>
+    <div class="decision">
+      <div class="dec-q">개인정보 처리</div>
+      <div class="dec-a">
+        <b>QR 이미지에서 이름 제거</b> — 카카오페이 QR에 표시되던 실명 크롭 처리.
+        <span class="why">→ QR 자체는 수취 전용으로 공개 안전. 이름 노출만 차단.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. UX 결정 사항 -->
+<section class="section">
+  <div class="section-tag">05</div>
+  <h2 class="section-title">주요 UX 결정 사항</h2>
+  <table>
+    <thead>
+      <tr><th>이슈</th><th>결정</th><th>이유</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>투어 자동 실행</td>
+        <td>자동 실행 제거 → ? 버튼 클릭 시만 노출</td>
+        <td>투어 오버레이가 기능 접근을 막는다는 피드백. 가이드는 선택적으로.</td>
+      </tr>
+      <tr>
+        <td>카메라 꺼진 상태의 버튼</td>
+        <td>반전·비율·인생네컷·스냅샷 항상 표시, disabled 상태로</td>
+        <td>어떤 기능이 있는지 미리 보여줌. 카메라 켜면 활성화됨을 자연스럽게 전달.</td>
+      </tr>
+      <tr>
+        <td>v7 vs v8 성능</td>
+        <td>체감 차이 없음 — 마이크로 인터랙션은 GPU 레이어만 사용</td>
+        <td>실제 병목은 getImageData 캔버스 루프. 마이크로 인터랙션은 추가 rAF 없음.</td>
+      </tr>
+      <tr>
+        <td>배포 형태</td>
+        <td>standalone HTML 단일 파일</td>
+        <td>서버 불필요. Netlify Drop에 파일 하나만 올려도 즉시 배포 가능.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 6. 배포 계획 -->
+<section class="section">
+  <div class="section-tag">06</div>
+  <h2 class="section-title">배포 계획</h2>
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <div class="card-title">권장: Netlify Drop</div>
+      <div class="card-body">netlify.com/drop에 파일 드래그. 30초 배포. 자동 HTTPS (카메라 API 필수).</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🐙</div>
+      <div class="card-title">GitHub Pages</div>
+      <div class="card-body">레포 생성 → 파일 업로드 → Pages 활성화. 커스텀 도메인 연결 가능.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚠️</div>
+      <div class="card-title">주의: HTTPS 필수</div>
+      <div class="card-body">getUserMedia API는 HTTPS 환경에서만 동작. file:// 로컬 실행 시 카메라 차단.</div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

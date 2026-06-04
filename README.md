@@ -31,13 +31,23 @@
 
 ## 사용 방법
 
-1. 최신 버전 HTML 파일을 다운로드
+1. [`CompyMirror_v10_standalone.html`](CompyMirror_v10_standalone.html) 다운로드 (최신 버전)
 2. 브라우저에서 열기
 3. 카메라 권한 허용
 4. 슬라이더 또는 프리셋으로 보정 적용
 5. 스냅샷 버튼으로 저장
 
 > 💡 `_standalone.html` 파일은 모든 리소스가 포함된 단일 파일 버전입니다.
+
+## 폴더 구조
+
+```
+/
+├── README.md
+├── CompyMirror_v10_standalone.html   ← 최종 버전
+├── docs/                              ← 기획·개발 문서
+└── legacy/                            ← 구버전 (v1~v9) 및 테스트 파일
+```
 
 ## 기술 스택
 
@@ -48,9 +58,9 @@
 
 ## 문서
 
-- [기획 문서 (Markdown)](20250517_CompyMirror_기획문서_v1.0.md)
-- [기획 문서 (HTML)](CompyMirror_기획문서.html)
-- [개발 문서 (HTML)](CompyMirror_개발문서.html)
+- [기획 문서 (Markdown)](docs/20250517_CompyMirror_기획문서_v1.0.md)
+- [기획 문서 (HTML)](docs/CompyMirror_기획문서.html)
+- [개발 문서 (HTML)](docs/CompyMirror_개발문서.html)
 
 ## 라이선스
 

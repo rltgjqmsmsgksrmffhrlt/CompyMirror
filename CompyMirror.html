@@ -1,0 +1,96 @@
+
+<h2 class="sr-only">웹캠 거울 — 카메라를 실시간 거울처럼 보여줍니다</h2>
+
+<style>
+  #mirror-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 1.5rem 0; }
+  #video { width: 100%; max-width: 600px; border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); background: var(--color-background-secondary); transform: scaleX(-1); display: block; }
+  #placeholder { width: 100%; max-width: 600px; aspect-ratio: 4/3; border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); background: var(--color-background-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--color-text-secondary); font-size: 15px; }
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  button { cursor: pointer; }
+  #status { font-size: 13px; color: var(--color-text-secondary); }
+</style>
+
+<div id="mirror-wrap">
+  <div id="placeholder">
+    <i class="ti ti-camera" style="font-size: 40px;" aria-hidden="true"></i>
+    <span>카메라 시작 버튼을 눌러주세요</span>
+  </div>
+  <video id="video" autoplay playsinline style="display:none;"></video>
+
+  <div class="controls">
+    <button id="btn-start" onclick="startCamera()"><i class="ti ti-camera" aria-hidden="true"></i> 카메라 시작</button>
+    <button id="btn-stop" onclick="stopCamera()" style="display:none;"><i class="ti ti-camera-off" aria-hidden="true"></i> 카메라 끄기</button>
+    <button id="btn-flip" onclick="toggleFlip()" style="display:none;"><i class="ti ti-flip-horizontal" aria-hidden="true"></i> 좌우 반전</button>
+    <button id="btn-snap" onclick="takeSnapshot()" style="display:none;"><i class="ti ti-capture" aria-hidden="true"></i> 스냅샷</button>
+  </div>
+
+  <span id="status"></span>
+  <canvas id="snap-canvas" style="display:none; max-width:600px; width:100%; border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary);"></canvas>
+</div>
+
+<script>
+let stream = null;
+let flipped = true;
+
+function startCamera() {
+  const video = document.getElementById('video');
+  const placeholder = document.getElementById('placeholder');
+  const status = document.getElementById('status');
+
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+    .then(s => {
+      stream = s;
+      video.srcObject = s;
+      video.style.display = 'block';
+      placeholder.style.display = 'none';
+      document.getElementById('btn-start').style.display = 'none';
+      document.getElementById('btn-stop').style.display = '';
+      document.getElementById('btn-flip').style.display = '';
+      document.getElementById('btn-snap').style.display = '';
+      status.textContent = '📷 카메라 켜짐';
+    })
+    .catch(err => {
+      status.textContent = '❌ 카메라 접근 실패: ' + err.message;
+    });
+}
+
+function stopCamera() {
+  if (stream) {
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
+  const video = document.getElementById('video');
+  video.srcObject = null;
+  video.style.display = 'none';
+  document.getElementById('placeholder').style.display = 'flex';
+  document.getElementById('btn-start').style.display = '';
+  document.getElementById('btn-stop').style.display = 'none';
+  document.getElementById('btn-flip').style.display = 'none';
+  document.getElementById('btn-snap').style.display = 'none';
+  document.getElementById('status').textContent = '';
+  document.getElementById('snap-canvas').style.display = 'none';
+}
+
+function toggleFlip() {
+  flipped = !flipped;
+  document.getElementById('video').style.transform = flipped ? 'scaleX(-1)' : 'scaleX(1)';
+  document.getElementById('btn-flip').innerHTML = flipped
+    ? '<i class="ti ti-flip-horizontal" aria-hidden="true"></i> 좌우 반전 켜짐'
+    : '<i class="ti ti-flip-horizontal" aria-hidden="true"></i> 좌우 반전 꺼짐';
+}
+
+function takeSnapshot() {
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('snap-canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  if (flipped) {
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(video, 0, 0);
+  canvas.style.display = 'block';
+  document.getElementById('status').textContent = '📸 스냅샷 저장됨 (길게 눌러서 이미지 저장 가능)';
+}
+</script>

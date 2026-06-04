@@ -1,0 +1,208 @@
+
+<h2 class="sr-only">보안 거울 앱 v2 — 모든 필터가 로컬에서 처리됩니다</h2>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+#app{padding:1rem 0;font-family:var(--font-sans)}
+#sec{display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--color-background-success);border:0.5px solid var(--color-border-success);border-radius:var(--border-radius-md);margin-bottom:12px;font-size:12px;color:var(--color-text-success)}
+#viewfinder{position:relative;width:100%;max-width:420px;aspect-ratio:4/3;background:#111;border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);overflow:hidden;margin-bottom:10px}
+#ph{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:#888;font-size:14px}
+video#vid{display:none;position:absolute;top:0;left:0;width:100%;height:100%}
+canvas#cv{display:none;position:absolute;top:0;left:0;width:100%;height:100%}
+#ctrls{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.fbox{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:12px;background:var(--color-background-primary);margin-bottom:10px}
+.fbox h3{font-size:11px;font-weight:500;color:var(--color-text-tertiary);letter-spacing:.05em;margin-bottom:10px}
+.row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.row label{font-size:12px;color:var(--color-text-secondary);width:65px;flex-shrink:0}
+.row input{flex:1}
+.row span{font-size:12px;font-weight:500;width:28px;text-align:right;color:var(--color-text-primary)}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.pb{font-size:11px;padding:4px 10px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:transparent;cursor:pointer;color:var(--color-text-secondary)}
+.pb.on{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
+#snapbox{margin-top:10px;display:none}
+#snapbox p{font-size:12px;color:var(--color-text-secondary);margin-bottom:6px}
+#snapbox canvas{width:100%;max-width:420px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary)}
+</style>
+
+<div id="app">
+  <div id="sec">
+    <i class="ti ti-shield-check" style="font-size:16px" aria-hidden="true"></i>
+    <span><strong>로컬 전용</strong> — 카메라 영상이 서버로 전송되지 않습니다. 모든 처리는 이 브라우저 안에서만 이루어집니다.</span>
+  </div>
+
+  <div id="viewfinder">
+    <div id="ph"><i class="ti ti-camera" style="font-size:36px" aria-hidden="true"></i><span>카메라 시작을 눌러주세요</span></div>
+    <video id="vid" autoplay playsinline muted></video>
+    <canvas id="cv"></canvas>
+  </div>
+
+  <div id="ctrls">
+    <button id="bs" onclick="startCam()"><i class="ti ti-camera" aria-hidden="true"></i> 카메라 시작</button>
+    <button id="bx" style="display:none" onclick="stopCam()"><i class="ti ti-camera-off" aria-hidden="true"></i> 끄기</button>
+    <button id="bf" style="display:none" onclick="toggleFlip()"><i class="ti ti-flip-horizontal" aria-hidden="true"></i> 반전</button>
+    <button id="bsnap" style="display:none" onclick="snap()"><i class="ti ti-capture" aria-hidden="true"></i> 스냅샷</button>
+  </div>
+
+  <div class="fbox">
+    <h3>프리셋</h3>
+    <div class="presets">
+      <button class="pb on" onclick="preset('off',this)">없음</button>
+      <button class="pb" onclick="preset('natural',this)">내추럴</button>
+      <button class="pb" onclick="preset('glow',this)">글로우</button>
+      <button class="pb" onclick="preset('vivid',this)">비비드</button>
+      <button class="pb" onclick="preset('mono',this)">흑백</button>
+      <button class="pb" onclick="preset('warm',this)">웜톤</button>
+      <button class="pb" onclick="preset('cool',this)">쿨톤</button>
+    </div>
+    <h3>세부 조절</h3>
+    <div class="row"><label>밝기</label><input type="range" id="fb" min="-100" max="100" step="1" value="0" oninput="sv('fb','vb')"><span id="vb">0</span></div>
+    <div class="row"><label>대비</label><input type="range" id="fc" min="-100" max="100" step="1" value="0" oninput="sv('fc','vc')"><span id="vc">0</span></div>
+    <div class="row"><label>채도</label><input type="range" id="fs" min="-100" max="100" step="1" value="0" oninput="sv('fs','vs')"><span id="vs">0</span></div>
+    <div class="row"><label>따뜻함</label><input type="range" id="fw" min="-80" max="80" step="1" value="0" oninput="sv('fw','vw')"><span id="vw">0</span></div>
+    <div class="row"><label>피부보정</label><input type="range" id="fk" min="0" max="8" step="1" value="0" oninput="sv('fk','vk')"><span id="vk">0</span></div>
+  </div>
+
+  <div id="snapbox">
+    <p><i class="ti ti-photo" aria-hidden="true"></i> 스냅샷 — 길게 눌러서 저장하세요</p>
+    <canvas id="sc"></canvas>
+  </div>
+</div>
+
+<script>
+let stream=null, flipped=true, raf=null;
+const vid=document.getElementById('vid');
+const cv=document.getElementById('cv');
+const ctx=cv.getContext('2d');
+
+function gv(id){return parseInt(document.getElementById(id).value);}
+function sv(sid,vid2){document.getElementById(vid2).textContent=document.getElementById(sid).value;}
+
+function setSliders(b,c,s,w,k){
+  const vals={fb:b,fc:c,fs:s,fw:w,fk:k};
+  const disp={vb:b,vc:c,vs:s,vw:w,vk:k};
+  Object.entries(vals).forEach(([id,v])=>document.getElementById(id).value=v);
+  Object.entries(disp).forEach(([id,v])=>document.getElementById(id).textContent=v);
+}
+
+const presets={
+  off:[0,0,0,0,0],
+  natural:[15,5,10,15,2],
+  glow:[35,-15,5,20,4],
+  vivid:[5,40,70,0,1],
+  mono:[0,20,-100,0,1],
+  warm:[10,10,20,60,2],
+  cool:[5,10,10,-60,2]
+};
+
+function preset(name,btn){
+  document.querySelectorAll('.pb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const [b,c,s,w,k]=presets[name];
+  setSliders(b,c,s,w,k);
+}
+
+async function startCam(){
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1920},height:{ideal:1080},facingMode:'user'},audio:false});
+    vid.srcObject=stream;
+    await vid.play();
+    document.getElementById('ph').style.display='none';
+    cv.style.display='block';
+    document.getElementById('bs').style.display='none';
+    ['bx','bf','bsnap'].forEach(id=>document.getElementById(id).style.display='');
+    loop();
+  }catch(e){alert('카메라 오류: '+e.message);}
+}
+
+function stopCam(){
+  if(stream)stream.getTracks().forEach(t=>t.stop());
+  stream=null; cancelAnimationFrame(raf);
+  cv.style.display='none';
+  document.getElementById('ph').style.display='flex';
+  document.getElementById('bs').style.display='';
+  ['bx','bf','bsnap'].forEach(id=>document.getElementById(id).style.display='none');
+}
+
+function toggleFlip(){flipped=!flipped;}
+
+function loop(){
+  if(!stream)return;
+  const vw=vid.videoWidth||640, vh=vid.videoHeight||480;
+  if(cv.width!==vw||cv.height!==vh){cv.width=vw;cv.height=vh;}
+  ctx.save();
+  if(flipped){ctx.translate(vw,0);ctx.scale(-1,1);}
+  ctx.drawImage(vid,0,0,vw,vh);
+  ctx.restore();
+  processPixels(vw,vh);
+  raf=requestAnimationFrame(loop);
+}
+
+function clamp(v){return v<0?0:v>255?255:v;}
+
+function processPixels(w,h){
+  const bright=gv('fb');
+  const contrast=gv('fc');
+  const sat=gv('fs');
+  const warm=gv('fw');
+  const smooth=gv('fk');
+
+  const imgd=ctx.getImageData(0,0,w,h);
+  const d=imgd.data;
+  const cFactor=(259*(contrast+255))/(255*(259-contrast));
+  const sFactor=(sat+100)/100;
+
+  for(let i=0;i<d.length;i+=4){
+    let r=d[i], g=d[i+1], b=d[i+2];
+
+    r=clamp(r+bright);
+    g=clamp(g+bright);
+    b=clamp(b+bright);
+
+    r=clamp(cFactor*(r-128)+128);
+    g=clamp(cFactor*(g-128)+128);
+    b=clamp(cFactor*(b-128)+128);
+
+    const gray=0.299*r+0.587*g+0.114*b;
+    r=clamp(gray+(r-gray)*sFactor);
+    g=clamp(gray+(g-gray)*sFactor);
+    b=clamp(gray+(b-gray)*sFactor);
+
+    r=clamp(r+warm*1.2);
+    b=clamp(b-warm*1.0);
+
+    d[i]=r; d[i+1]=g; d[i+2]=b;
+  }
+
+  if(smooth>0){
+    boxBlur(d,w,h,smooth);
+  }
+
+  ctx.putImageData(imgd,0,0);
+}
+
+function boxBlur(d,w,h,r){
+  const tmp=new Uint8ClampedArray(d.length);
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      let sr=0,sg=0,sb=0,cnt=0;
+      for(let dx=-r;dx<=r;dx++){
+        const nx=x+dx;
+        if(nx>=0&&nx<w){
+          const idx=(y*w+nx)*4;
+          sr+=d[idx];sg+=d[idx+1];sb+=d[idx+2];cnt++;
+        }
+      }
+      const i=(y*w+x)*4;
+      tmp[i]=sr/cnt;tmp[i+1]=sg/cnt;tmp[i+2]=sb/cnt;tmp[i+3]=d[i+3];
+    }
+  }
+  for(let i=0;i<d.length;i++)d[i]=tmp[i];
+}
+
+function snap(){
+  const sc=document.getElementById('sc');
+  sc.width=cv.width;sc.height=cv.height;
+  sc.getContext('2d').drawImage(cv,0,0);
+  const sb=document.getElementById('snapbox');
+  sb.style.display='block';
+}
+</script>

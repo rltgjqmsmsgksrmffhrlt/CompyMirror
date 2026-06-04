@@ -1,0 +1,392 @@
+
+<h2 class="sr-only">보안 거울 앱 v3 — 모든 필터가 로컬에서 처리됩니다</h2>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+#app{padding:1rem 0;font-family:var(--font-sans,system-ui,sans-serif)}
+#sec{display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--color-background-success,#ecfdf5);border:0.5px solid var(--color-border-success,#6ee7b7);border-radius:var(--border-radius-md,8px);margin-bottom:12px;font-size:12px;color:var(--color-text-success,#065f46)}
+#viewfinder{position:relative;width:100%;max-width:420px;background:#111;border-radius:var(--border-radius-lg,12px);border:0.5px solid var(--color-border-tertiary,#e5e7eb);overflow:hidden;margin-bottom:10px;transition:aspect-ratio .3s}
+#viewfinder.portrait{aspect-ratio:9/16}
+#viewfinder.landscape{aspect-ratio:4/3}
+#ph{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:200px;gap:8px;color:#888;font-size:14px}
+video#vid{display:none;position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+canvas#cv{display:none;position:absolute;top:0;left:0;width:100%;height:100%}
+#countdown{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:80px;font-weight:700;color:#fff;text-shadow:0 0 20px rgba(0,0,0,.8);z-index:10;line-height:1;pointer-events:none}
+#ctrls{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px}
+#cam-row{display:none;align-items:center;gap:8px;margin-bottom:10px;font-size:12px;color:var(--color-text-secondary,#6b7280)}
+#cam-row label{white-space:nowrap}
+#cam-sel{flex:1;font-size:12px;padding:4px 6px;border:0.5px solid var(--color-border-secondary,#d1d5db);border-radius:var(--border-radius-md,8px);background:var(--color-background-primary,#fff);color:var(--color-text-primary,#111)}
+.fbox{border:0.5px solid var(--color-border-tertiary,#e5e7eb);border-radius:var(--border-radius-lg,12px);padding:12px;background:var(--color-background-primary,#fff);margin-bottom:10px}
+.fbox h3{font-size:11px;font-weight:500;color:var(--color-text-tertiary,#9ca3af);letter-spacing:.05em;margin-bottom:10px}
+.row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.row:last-child{margin-bottom:0}
+.row label{font-size:12px;color:var(--color-text-secondary,#6b7280);width:65px;flex-shrink:0}
+.row input[type=range]{flex:1}
+.row span{font-size:12px;font-weight:500;width:28px;text-align:right;color:var(--color-text-primary,#111)}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.pb{font-size:11px;padding:4px 10px;border-radius:20px;border:0.5px solid var(--color-border-secondary,#d1d5db);background:transparent;cursor:pointer;color:var(--color-text-secondary,#6b7280);transition:all .15s}
+.pb.on{background:var(--color-background-info,#eff6ff);border-color:var(--color-border-info,#93c5fd);color:var(--color-text-info,#1d4ed8)}
+#snapbox{margin-top:10px;display:none}
+#snapbox-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+#snapbox-hd p{font-size:12px;color:var(--color-text-secondary,#6b7280)}
+#dl-btn{font-size:11px;padding:4px 10px;border-radius:20px;border:0.5px solid var(--color-border-secondary,#d1d5db);background:transparent;cursor:pointer;color:var(--color-text-secondary,#6b7280)}
+#sc{width:100%;max-width:420px;border-radius:var(--border-radius-md,8px);border:0.5px solid var(--color-border-tertiary,#e5e7eb)}
+.timer-btns{display:none;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tb{font-size:11px;padding:4px 10px;border-radius:20px;border:0.5px solid var(--color-border-secondary,#d1d5db);background:transparent;cursor:pointer;color:var(--color-text-secondary,#6b7280)}
+button.flipped-on{background:var(--color-background-info,#eff6ff);border-color:var(--color-border-info,#93c5fd);color:var(--color-text-info,#1d4ed8)}
+</style>
+
+<div id="app">
+  <div id="sec">
+    <i class="ti ti-shield-check" style="font-size:16px" aria-hidden="true"></i>
+    <span><strong>로컬 전용</strong> — 카메라 영상이 서버로 전송되지 않습니다. 모든 처리는 이 브라우저 안에서만 이루어집니다.</span>
+  </div>
+
+  <div id="viewfinder" class="landscape">
+    <div id="ph"><i class="ti ti-camera" style="font-size:36px" aria-hidden="true"></i><span>카메라 시작을 눌러주세요</span></div>
+    <video id="vid" autoplay playsinline muted></video>
+    <canvas id="cv"></canvas>
+    <div id="countdown"></div>
+  </div>
+
+  <div id="cam-row">
+    <label for="cam-sel"><i class="ti ti-camera-rotate" aria-hidden="true"></i> 카메라</label>
+    <select id="cam-sel" onchange="switchCam()"></select>
+  </div>
+
+  <div id="ctrls">
+    <button id="bs" onclick="startCam()"><i class="ti ti-camera" aria-hidden="true"></i> 카메라 시작</button>
+    <button id="bx" style="display:none" onclick="stopCam()"><i class="ti ti-camera-off" aria-hidden="true"></i> 끄기</button>
+    <button id="bf" style="display:none" onclick="toggleFlip()"><i class="ti ti-flip-horizontal" aria-hidden="true"></i> 반전</button>
+    <button id="bmode" style="display:none" onclick="toggleMode()" title="전신/얼굴 모드 전환"><i class="ti ti-aspect-ratio" aria-hidden="true"></i> 전신</button>
+    <button id="bsnap" style="display:none" onclick="snap()"><i class="ti ti-capture" aria-hidden="true"></i> 스냅샷</button>
+  </div>
+
+  <div class="timer-btns" id="timer-btns">
+    <span style="font-size:11px;color:var(--color-text-tertiary,#9ca3af);align-self:center">타이머:</span>
+    <button class="tb" onclick="timedSnap(3)">3초</button>
+    <button class="tb" onclick="timedSnap(5)">5초</button>
+    <button class="tb" onclick="timedSnap(10)">10초</button>
+  </div>
+
+  <div class="fbox">
+    <h3>프리셋</h3>
+    <div class="presets">
+      <button class="pb on" onclick="preset('off',this)">없음</button>
+      <button class="pb" onclick="preset('natural',this)">내추럴</button>
+      <button class="pb" onclick="preset('glow',this)">글로우</button>
+      <button class="pb" onclick="preset('vivid',this)">비비드</button>
+      <button class="pb" onclick="preset('mono',this)">흑백</button>
+      <button class="pb" onclick="preset('warm',this)">웜톤</button>
+      <button class="pb" onclick="preset('cool',this)">쿨톤</button>
+    </div>
+    <h3>세부 조절</h3>
+    <div class="row"><label>밝기</label><input type="range" id="fb" min="-100" max="100" step="1" value="0" oninput="sv('fb','vb')"><span id="vb">0</span></div>
+    <div class="row"><label>대비</label><input type="range" id="fc" min="-100" max="100" step="1" value="0" oninput="sv('fc','vc')"><span id="vc">0</span></div>
+    <div class="row"><label>채도</label><input type="range" id="fs" min="-100" max="100" step="1" value="0" oninput="sv('fs','vs')"><span id="vs">0</span></div>
+    <div class="row"><label>따뜻함</label><input type="range" id="fw" min="-80" max="80" step="1" value="0" oninput="sv('fw','vw')"><span id="vw">0</span></div>
+    <div class="row"><label>피부보정</label><input type="range" id="fk" min="0" max="8" step="1" value="0" oninput="sv('fk','vk')"><span id="vk">0</span></div>
+    <div class="row"><label>선명도</label><input type="range" id="fsh" min="0" max="100" step="1" value="0" oninput="sv('fsh','vsh')"><span id="vsh">0</span></div>
+  </div>
+
+  <div id="snapbox">
+    <div id="snapbox-hd">
+      <p><i class="ti ti-photo" aria-hidden="true"></i> 스냅샷</p>
+      <button id="dl-btn" onclick="downloadSnap()"><i class="ti ti-download" aria-hidden="true"></i> 저장</button>
+    </div>
+    <canvas id="sc"></canvas>
+  </div>
+</div>
+
+<script>
+const LS_KEY = 'compymirror_v3';
+let stream = null, flipped = true, raf = null, portraitMode = false, timerRaf = null;
+const vid = document.getElementById('vid');
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+
+// ── localStorage 저장/복원 ──────────────────────────────────────────────
+function saveFilters() {
+  const vals = ['fb','fc','fs','fw','fk','fsh'].reduce((o,id) => {
+    o[id] = document.getElementById(id).value;
+    return o;
+  }, {});
+  try { localStorage.setItem(LS_KEY, JSON.stringify(vals)); } catch(e) {}
+}
+
+function loadFilters() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+    ['fb','fc','fs','fw','fk','fsh'].forEach(id => {
+      if (saved[id] !== undefined) {
+        document.getElementById(id).value = saved[id];
+        const dispId = 'v' + id.slice(1);
+        document.getElementById(dispId).textContent = saved[id];
+      }
+    });
+  } catch(e) {}
+}
+
+// ── 슬라이더 ──────────────────────────────────────────────────────────────
+function gv(id) { return parseInt(document.getElementById(id).value); }
+function sv(sid, vid2) {
+  document.getElementById(vid2).textContent = document.getElementById(sid).value;
+  document.querySelectorAll('.pb').forEach(b => b.classList.remove('on'));
+  saveFilters();
+}
+
+function setSliders(b, c, s, w, k, sh) {
+  const vals = {fb:b, fc:c, fs:s, fw:w, fk:k, fsh:sh};
+  const disp = {vb:b, vc:c, vs:s, vw:w, vk:k, vsh:sh};
+  Object.entries(vals).forEach(([id, v]) => document.getElementById(id).value = v);
+  Object.entries(disp).forEach(([id, v]) => document.getElementById(id).textContent = v);
+  saveFilters();
+}
+
+// ── 프리셋 (선명도 0 추가) ────────────────────────────────────────────────
+const presets = {
+  off:     [0,  0,    0,   0, 0, 0],
+  natural: [15, 5,   10,  15, 2, 10],
+  glow:    [35, -15,  5,  20, 4, 0],
+  vivid:   [5,  40,  70,   0, 1, 20],
+  mono:    [0,  20, -100,  0, 1, 5],
+  warm:    [10, 10,  20,  60, 2, 5],
+  cool:    [5,  10,  10, -60, 2, 5]
+};
+
+function preset(name, btn) {
+  document.querySelectorAll('.pb').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  const [b, c, s, w, k, sh] = presets[name];
+  setSliders(b, c, s, w, k, sh);
+}
+
+// ── 카메라 목록 ───────────────────────────────────────────────────────────
+async function listCameras() {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cams = devices.filter(d => d.kind === 'videoinput');
+    const sel = document.getElementById('cam-sel');
+    sel.innerHTML = '';
+    cams.forEach((cam, i) => {
+      const opt = document.createElement('option');
+      opt.value = cam.deviceId;
+      opt.textContent = cam.label || `카메라 ${i + 1}`;
+      sel.appendChild(opt);
+    });
+    if (cams.length > 1) document.getElementById('cam-row').style.display = 'flex';
+    else document.getElementById('cam-row').style.display = 'none';
+  } catch(e) {}
+}
+
+// ── 카메라 시작/종료 ──────────────────────────────────────────────────────
+async function startCam() {
+  try {
+    const deviceId = document.getElementById('cam-sel').value;
+    const constraints = {
+      video: {
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        facingMode: 'user',
+        ...(deviceId ? { deviceId: { exact: deviceId } } : {})
+      },
+      audio: false
+    };
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
+    vid.srcObject = stream;
+    await vid.play();
+    await listCameras();
+    document.getElementById('ph').style.display = 'none';
+    cv.style.display = 'block';
+    document.getElementById('bs').style.display = 'none';
+    ['bx','bf','bmode','bsnap'].forEach(id => document.getElementById(id).style.display = '');
+    document.getElementById('timer-btns').style.display = 'flex';
+    updateFlipBtn();
+    loop();
+  } catch(e) {
+    alert('카메라 오류: ' + e.message);
+  }
+}
+
+async function switchCam() {
+  if (!stream) return;
+  stopStream();
+  await startCam();
+}
+
+function stopStream() {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  stream = null;
+  cancelAnimationFrame(raf);
+  if (timerRaf) { clearTimeout(timerRaf); timerRaf = null; }
+}
+
+function stopCam() {
+  stopStream();
+  cv.style.display = 'none';
+  document.getElementById('ph').style.display = 'flex';
+  document.getElementById('bs').style.display = '';
+  document.getElementById('cam-row').style.display = 'none';
+  document.getElementById('timer-btns').style.display = 'none';
+  ['bx','bf','bmode','bsnap'].forEach(id => document.getElementById(id).style.display = 'none');
+}
+
+window.addEventListener('beforeunload', stopStream);
+
+// ── 반전 ──────────────────────────────────────────────────────────────────
+function toggleFlip() {
+  flipped = !flipped;
+  updateFlipBtn();
+}
+
+function updateFlipBtn() {
+  const btn = document.getElementById('bf');
+  btn.classList.toggle('flipped-on', flipped);
+}
+
+// ── 전신 모드 ─────────────────────────────────────────────────────────────
+function toggleMode() {
+  portraitMode = !portraitMode;
+  const vf = document.getElementById('viewfinder');
+  const btn = document.getElementById('bmode');
+  if (portraitMode) {
+    vf.classList.replace('landscape', 'portrait');
+    btn.innerHTML = '<i class="ti ti-aspect-ratio" aria-hidden="true"></i> 얼굴';
+  } else {
+    vf.classList.replace('portrait', 'landscape');
+    btn.innerHTML = '<i class="ti ti-aspect-ratio" aria-hidden="true"></i> 전신';
+  }
+}
+
+// ── 렌더링 루프 ───────────────────────────────────────────────────────────
+function loop() {
+  if (!stream) return;
+  const vw = vid.videoWidth || 640, vh = vid.videoHeight || 480;
+  if (cv.width !== vw || cv.height !== vh) { cv.width = vw; cv.height = vh; }
+  ctx.save();
+  if (flipped) { ctx.translate(vw, 0); ctx.scale(-1, 1); }
+  ctx.drawImage(vid, 0, 0, vw, vh);
+  ctx.restore();
+  processPixels(vw, vh);
+  raf = requestAnimationFrame(loop);
+}
+
+function clamp(v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
+
+// ── 픽셀 필터 처리 ────────────────────────────────────────────────────────
+function processPixels(w, h) {
+  const bright   = gv('fb');
+  const contrast = gv('fc');
+  const sat      = gv('fs');
+  const warm     = gv('fw');
+  const smooth   = gv('fk');
+  const sharp    = gv('fsh');
+
+  const imgd = ctx.getImageData(0, 0, w, h);
+  const d = imgd.data;
+  const cFactor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+  const sFactor = (sat + 100) / 100;
+
+  for (let i = 0; i < d.length; i += 4) {
+    let r = d[i], g = d[i+1], b = d[i+2];
+
+    // 밝기
+    r = clamp(r + bright);
+    g = clamp(g + bright);
+    b = clamp(b + bright);
+
+    // 대비
+    r = clamp(cFactor * (r - 128) + 128);
+    g = clamp(cFactor * (g - 128) + 128);
+    b = clamp(cFactor * (b - 128) + 128);
+
+    // 채도
+    const gray = 0.299*r + 0.587*g + 0.114*b;
+    r = clamp(gray + (r - gray) * sFactor);
+    g = clamp(gray + (g - gray) * sFactor);
+    b = clamp(gray + (b - gray) * sFactor);
+
+    // 따뜻함
+    r = clamp(r + warm * 1.2);
+    b = clamp(b - warm * 1.0);
+
+    d[i] = r; d[i+1] = g; d[i+2] = b;
+  }
+
+  if (smooth > 0) boxBlur(d, w, h, smooth);
+
+  // 선명도 (Unsharp Mask)
+  if (sharp > 0) {
+    const blurred = new Uint8ClampedArray(d.length);
+    for (let i = 0; i < d.length; i++) blurred[i] = d[i];
+    boxBlur(blurred, w, h, 1);
+    const amount = sharp / 50; // 0~2 배율
+    for (let i = 0; i < d.length; i += 4) {
+      d[i]   = clamp(d[i]   + amount * (d[i]   - blurred[i]));
+      d[i+1] = clamp(d[i+1] + amount * (d[i+1] - blurred[i+1]));
+      d[i+2] = clamp(d[i+2] + amount * (d[i+2] - blurred[i+2]));
+    }
+  }
+
+  ctx.putImageData(imgd, 0, 0);
+}
+
+function boxBlur(d, w, h, r) {
+  const tmp = new Uint8ClampedArray(d.length);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let sr=0, sg=0, sb=0, cnt=0;
+      for (let dx = -r; dx <= r; dx++) {
+        const nx = x + dx;
+        if (nx >= 0 && nx < w) {
+          const idx = (y*w + nx)*4;
+          sr += d[idx]; sg += d[idx+1]; sb += d[idx+2]; cnt++;
+        }
+      }
+      const i = (y*w + x)*4;
+      tmp[i]=sr/cnt; tmp[i+1]=sg/cnt; tmp[i+2]=sb/cnt; tmp[i+3]=d[i+3];
+    }
+  }
+  for (let i = 0; i < d.length; i++) d[i] = tmp[i];
+}
+
+// ── 스냅샷 ────────────────────────────────────────────────────────────────
+function snap() {
+  const sc = document.getElementById('sc');
+  sc.width = cv.width; sc.height = cv.height;
+  sc.getContext('2d').drawImage(cv, 0, 0);
+  document.getElementById('snapbox').style.display = 'block';
+}
+
+function downloadSnap() {
+  const sc = document.getElementById('sc');
+  const link = document.createElement('a');
+  link.download = `mirror_${Date.now()}.png`;
+  link.href = sc.toDataURL('image/png');
+  link.click();
+}
+
+// ── 타이머 스냅샷 ─────────────────────────────────────────────────────────
+function timedSnap(sec) {
+  if (!stream) return;
+  const cd = document.getElementById('countdown');
+  let remaining = sec;
+  cd.style.display = 'block';
+  cd.textContent = remaining;
+
+  function tick() {
+    remaining--;
+    if (remaining <= 0) {
+      cd.style.display = 'none';
+      snap();
+    } else {
+      cd.textContent = remaining;
+      timerRaf = setTimeout(tick, 1000);
+    }
+  }
+  timerRaf = setTimeout(tick, 1000);
+}
+
+// ── 초기화 ────────────────────────────────────────────────────────────────
+loadFilters();
+navigator.mediaDevices.enumerateDevices().then(listCameras).catch(()=>{});
+</script>

@@ -31,7 +31,7 @@
 
 ## 사용 방법
 
-1. [`CompyMirror_v10_standalone.html`](CompyMirror_v10_standalone.html) 다운로드 (최신 버전)
+1. [`CompyMirror_v10_standalone.html`](CompyMirror_v10_standalone.html) 또는 [`CompyMirror_standalone.html`](CompyMirror_standalone.html) 다운로드
 2. 브라우저에서 열기
 3. 카메라 권한 허용
 4. 슬라이더 또는 프리셋으로 보정 적용
@@ -44,9 +44,15 @@
 ```
 /
 ├── README.md
-├── CompyMirror_v10_standalone.html   ← 최종 버전
-├── docs/                              ← 기획·개발 문서
-└── legacy/                            ← 구버전 (v1~v9) 및 테스트 파일
+├── CompyMirror_v10.html               ← 최신 버전 (외부 리소스 참조)
+├── CompyMirror_v10_standalone.html    ← 최신 버전 (단일 파일)
+├── CompyMirror_standalone.html        ← 경량 standalone 버전
+├── chrome.css                          ← Liquid Chrome 디자인 시스템
+├── micro.css / micro.js               ← 마이크로 인터랙션
+├── docs/                               ← 기획·개발 문서
+├── screenshots/                        ← UI 스크린샷
+├── assets/                             ← 이미지 리소스
+└── legacy/                             ← 구버전 (v1~v9) 및 테스트 파일
 ```
 
 ## 기술 스택
